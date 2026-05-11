@@ -161,8 +161,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         dup.keyEquivalentModifierMask = [.command, .shift]; dup.target = self
         let del = NSMenuItem(title: "선택 삭제", action: #selector(menuDelete), keyEquivalent: "\u{0008}"); del.target = self
         let bulk = NSMenuItem(title: "일괄 편집…", action: #selector(menuBulk), keyEquivalent: "b"); bulk.target = self
-        let restore = NSMenuItem(title: "삭제 복구", action: #selector(menuRestore), keyEquivalent: "z"); restore.target = self
+        // 'z' 는 표준 Undo 키와 충돌하므로 삭제 복구는 단축키 없이 항목으로만 노출.
+        let restore = NSMenuItem(title: "삭제 복구", action: #selector(menuRestore), keyEquivalent: ""); restore.target = self
         editMenu.addItem(add); editMenu.addItem(dup); editMenu.addItem(del); editMenu.addItem(bulk); editMenu.addItem(restore)
+
+        // 표준 편집 액션 (TextField 등 first responder 로 라우팅)
+        editMenu.addItem(.separator())
+        let undo  = NSMenuItem(title: "실행 취소",   action: Selector(("undo:")),      keyEquivalent: "z")
+        let redo  = NSMenuItem(title: "다시 실행",   action: Selector(("redo:")),      keyEquivalent: "Z")
+        redo.keyEquivalentModifierMask = [.command, .shift]
+        let cut   = NSMenuItem(title: "잘라내기",    action: #selector(NSText.cut(_:)),       keyEquivalent: "x")
+        let copy  = NSMenuItem(title: "복사",        action: #selector(NSText.copy(_:)),      keyEquivalent: "c")
+        let paste = NSMenuItem(title: "붙여넣기",    action: #selector(NSText.paste(_:)),     keyEquivalent: "v")
+        let selAll = NSMenuItem(title: "모두 선택",  action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        [undo, redo, NSMenuItem.separator(), cut, copy, paste, selAll].forEach {
+            // target = nil → first responder 체인으로 라우팅 (텍스트 필드가 자동 처리)
+            $0.target = nil
+            editMenu.addItem($0)
+        }
+
         editItem.submenu = editMenu
         main.addItem(editItem)
 
