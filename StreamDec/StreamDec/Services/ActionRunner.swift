@@ -171,11 +171,8 @@ final class ActionRunner {
     }
 
     private func runOpenURL(_ p: ButtonAction.OpenURLPayload) async -> ActionResult {
-        // 사용자가 "google.com" 같이 스킴을 빼고 입력했을 수도 있으니 보정.
         let raw = p.urlString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else {
-            return .failed(message: "URL 이 비어 있습니다.")
-        }
+        guard !raw.isEmpty else { return .failed(message: "URL 이 비어 있습니다.") }
         let normalized: String
         if raw.contains("://") || raw.hasPrefix("mailto:") || raw.hasPrefix("tel:") {
             normalized = raw
@@ -189,9 +186,36 @@ final class ActionRunner {
         NSApp.deactivate()
 
         let workspace = NSWorkspace.shared
-        // 지정 브라우저가 있으면 그것으로 열기, 없으면 시스템 기본.
-        if let bid = p.openWithBundleIdentifier,
-           let appURL = workspace.urlForApplication(withBundleIdentifier: bid) {
+        // 브라우저 식별: 사용자가 지정했거나, 시스템 기본 브라우저.
+        let browserURL: URL? = {
+            if let bid = p.openWithBundleIdentifier {
+                return workspace.urlForApplication(withBundleIdentifier: bid)
+            }
+            if url.scheme == "http" || url.scheme == "https" {
+                let probe = URL(string: "https://www.example.com")!
+                return workspace.urlForApplication(toOpen: probe)
+            }
+            return nil
+        }()
+        let browserBID = browserURL.flatMap { Bundle(url: $0)?.bundleIdentifier }
+
+        // 1) http(s) 이고 지원 브라우저면 AppleScript 로 기존 탭 포커스 시도.
+        if (url.scheme == "http" || url.scheme == "https"),
+           let bid = browserBID,
+           let script = Self.focusOrOpenTabScript(browserBID: bid, url: normalized) {
+            let success = await Task.detached(priority: .userInitiated) { () -> Bool in
+                var err: NSDictionary?
+                guard let s = NSAppleScript(source: script) else { return false }
+                _ = s.executeAndReturnError(&err)
+                // err 가 nil 이면 스크립트가 성공적으로 끝남 (포커스 OR 새 탭). 둘 다 우리에겐 succeeded.
+                return err == nil
+            }.value
+            if success { return .succeeded }
+            // AppleScript 실패(자동화 권한 미허용 등) → 폴백.
+        }
+
+        // 2) 폴백: NSWorkspace.open
+        if let appURL = browserURL {
             let config = NSWorkspace.OpenConfiguration()
             config.activates = true
             return await withCheckedContinuation { (cont: CheckedContinuation<ActionResult, Never>) in
@@ -205,6 +229,75 @@ final class ActionRunner {
             }
         }
         return workspace.open(url) ? .succeeded : .failed(message: "URL 열기 실패")
+    }
+
+    /// 브라우저별 "이미 같은 URL 탭이 있으면 포커스, 없으면 새 탭" AppleScript.
+    /// 지원: Safari, Chromium 계열(Chrome, Brave, Edge, Vivaldi).
+    /// 처음 실행 시 macOS 가 자동화 권한 prompt 표시 → 사용자가 허용해야 동작.
+    private static func focusOrOpenTabScript(browserBID: String, url: String) -> String? {
+        let escaped = url.replacingOccurrences(of: "\\", with: "\\\\")
+                         .replacingOccurrences(of: "\"", with: "\\\"")
+        switch browserBID {
+        case "com.apple.Safari":
+            return """
+            tell application id "com.apple.Safari"
+                activate
+                set targetURL to "\(escaped)"
+                set found to false
+                repeat with w in windows
+                    repeat with t in tabs of w
+                        if URL of t is targetURL then
+                            set current tab of w to t
+                            set index of w to 1
+                            set found to true
+                            exit repeat
+                        end if
+                    end repeat
+                    if found then exit repeat
+                end repeat
+                if not found then
+                    if (count of windows) = 0 then
+                        make new document with properties {URL:targetURL}
+                    else
+                        tell front window to set current tab to (make new tab with properties {URL:targetURL})
+                    end if
+                end if
+            end tell
+            """
+        case "com.google.Chrome",
+             "com.brave.Browser",
+             "com.microsoft.edgemac",
+             "com.vivaldi.Vivaldi",
+             "com.operasoftware.Opera":
+            return """
+            tell application id "\(browserBID)"
+                activate
+                set targetURL to "\(escaped)"
+                set found to false
+                repeat with w in windows
+                    set i to 0
+                    repeat with t in tabs of w
+                        set i to i + 1
+                        if URL of t is targetURL then
+                            set active tab index of w to i
+                            set index of w to 1
+                            set found to true
+                            exit repeat
+                        end if
+                    end repeat
+                    if found then exit repeat
+                end repeat
+                if not found then
+                    if (count of windows) = 0 then
+                        make new window
+                    end if
+                    tell front window to make new tab with properties {URL:targetURL}
+                end if
+            end tell
+            """
+        default:
+            return nil
+        }
     }
 
     private func runShell(_ p: ButtonAction.ShellPayload) async -> ActionResult {
