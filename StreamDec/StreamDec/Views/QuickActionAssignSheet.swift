@@ -19,6 +19,9 @@ struct QuickActionAssignSheet: View {
     // openPath
     @State private var path: String = ""
 
+    // openURL
+    @State private var urlString: String = ""
+
     // shell
     @State private var shellScript: String = "echo hello from StreamDec"
     @State private var requireShellConfirm: Bool = true
@@ -28,13 +31,14 @@ struct QuickActionAssignSheet: View {
     @State private var requireScriptConfirm: Bool = true
 
     enum Kind: String, CaseIterable, Identifiable {
-        case none, openApp, openPath, runShell, runAppleScript
+        case none, openApp, openPath, openURL, runShell, runAppleScript
         var id: String { rawValue }
         var displayName: String {
             switch self {
             case .none: return "없음"
             case .openApp: return "앱 실행"
             case .openPath: return "파일/폴더 열기"
+            case .openURL: return "링크 열기"
             case .runShell: return "쉘 스크립트"
             case .runAppleScript: return "AppleScript"
             }
@@ -74,6 +78,8 @@ struct QuickActionAssignSheet: View {
                     openAppForm
                 case .openPath:
                     openPathForm
+                case .openURL:
+                    openURLForm
                 case .runShell:
                     shellForm
                 case .runAppleScript:
@@ -130,6 +136,20 @@ struct QuickActionAssignSheet: View {
                 TextField("파일 또는 폴더 경로", text: $path)
                 Button("경로 선택…", action: pickPath)
             }
+        }
+    }
+
+    private var openURLForm: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "link")
+                    .foregroundStyle(.secondary)
+                TextField("https://example.com", text: $urlString)
+                    .textFieldStyle(.roundedBorder)
+            }
+            Text("https:// 가 없으면 자동으로 추가됩니다. mailto: / slack:// 등 모든 스킴 지원.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
         }
     }
 
@@ -217,6 +237,9 @@ struct QuickActionAssignSheet: View {
         case .openPath(let p):
             actionKind = .openPath
             path = p.path
+        case .openURL(let p):
+            actionKind = .openURL
+            urlString = p.urlString
         case .runShell(let p):
             actionKind = .runShell
             shellScript = p.script
@@ -244,6 +267,11 @@ struct QuickActionAssignSheet: View {
                 path: path,
                 openWithBundleIdentifier: nil,
                 bookmarkData: nil
+            ))
+        case .openURL:
+            newAction = .openURL(.init(
+                urlString: urlString,
+                openWithBundleIdentifier: nil
             ))
         case .runShell:
             newAction = .runShell(.init(

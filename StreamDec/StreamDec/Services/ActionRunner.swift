@@ -27,7 +27,7 @@ final class ActionRunner {
 
         // 다른 앱을 띄우는 액션이면 잠시(0.8초) 우리 앱의 자동 activate 를 억제.
         switch action {
-        case .openApp, .openPath:
+        case .openApp, .openPath, .openURL:
             AppDelegate.suppressAutoActivateUntil = Date().addingTimeInterval(0.8)
         default: break
         }
@@ -49,6 +49,8 @@ final class ActionRunner {
             result = await runOpenApp(payload)
         case .openPath(let payload):
             result = await runOpenPath(payload)
+        case .openURL(let payload):
+            result = await runOpenURL(payload)
         case .runShell(let payload):
             let needConfirm = payload.requireConfirmation || needsGlobalConfirm
             if needConfirm, !confirm(message: "이 쉘 스크립트를 실행할까요?", detail: payload.script) {
@@ -166,6 +168,43 @@ final class ActionRunner {
             let ok = workspace.open(url)
             return ok ? .succeeded : .failed(message: "열기 실패")
         }
+    }
+
+    private func runOpenURL(_ p: ButtonAction.OpenURLPayload) async -> ActionResult {
+        // 사용자가 "google.com" 같이 스킴을 빼고 입력했을 수도 있으니 보정.
+        let raw = p.urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else {
+            return .failed(message: "URL 이 비어 있습니다.")
+        }
+        let normalized: String
+        if raw.contains("://") || raw.hasPrefix("mailto:") || raw.hasPrefix("tel:") {
+            normalized = raw
+        } else {
+            normalized = "https://\(raw)"
+        }
+        guard let url = URL(string: normalized) else {
+            return .failed(message: "올바르지 않은 URL: \(raw)")
+        }
+
+        NSApp.deactivate()
+
+        let workspace = NSWorkspace.shared
+        // 지정 브라우저가 있으면 그것으로 열기, 없으면 시스템 기본.
+        if let bid = p.openWithBundleIdentifier,
+           let appURL = workspace.urlForApplication(withBundleIdentifier: bid) {
+            let config = NSWorkspace.OpenConfiguration()
+            config.activates = true
+            return await withCheckedContinuation { (cont: CheckedContinuation<ActionResult, Never>) in
+                workspace.open([url], withApplicationAt: appURL, configuration: config) { _, error in
+                    if let error = error {
+                        cont.resume(returning: .failed(message: error.localizedDescription))
+                    } else {
+                        cont.resume(returning: .succeeded)
+                    }
+                }
+            }
+        }
+        return workspace.open(url) ? .succeeded : .failed(message: "URL 열기 실패")
     }
 
     private func runShell(_ p: ButtonAction.ShellPayload) async -> ActionResult {

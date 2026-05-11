@@ -5,6 +5,7 @@ enum ButtonAction: Codable, Equatable {
     case none
     case openApp(OpenAppPayload)
     case openPath(OpenPathPayload)
+    case openURL(OpenURLPayload)
     case runShell(ShellPayload)
     case runAppleScript(AppleScriptPayload)
 
@@ -25,6 +26,13 @@ enum ButtonAction: Codable, Equatable {
         var bookmarkData: Data?
     }
 
+    struct OpenURLPayload: Codable, Equatable {
+        /// http://, https://, mailto:, slack://, file:// 등 모든 URL 스킴 지원.
+        var urlString: String
+        /// 지정 브라우저/앱으로 열기. nil 이면 시스템 기본.
+        var openWithBundleIdentifier: String?
+    }
+
     struct ShellPayload: Codable, Equatable {
         var script: String
         var arguments: [String]
@@ -43,7 +51,7 @@ enum ButtonAction: Codable, Equatable {
 
     private enum CodingKeys: String, CodingKey { case type, payload }
     private enum Kind: String, Codable {
-        case none, openApp, openPath, runShell, runAppleScript
+        case none, openApp, openPath, openURL, runShell, runAppleScript
     }
 
     init(from decoder: Decoder) throws {
@@ -56,6 +64,8 @@ enum ButtonAction: Codable, Equatable {
             self = .openApp(try c.decode(OpenAppPayload.self, forKey: .payload))
         case .openPath:
             self = .openPath(try c.decode(OpenPathPayload.self, forKey: .payload))
+        case .openURL:
+            self = .openURL(try c.decode(OpenURLPayload.self, forKey: .payload))
         case .runShell:
             self = .runShell(try c.decode(ShellPayload.self, forKey: .payload))
         case .runAppleScript:
@@ -74,6 +84,9 @@ enum ButtonAction: Codable, Equatable {
         case .openPath(let p):
             try c.encode(Kind.openPath, forKey: .type)
             try c.encode(p, forKey: .payload)
+        case .openURL(let p):
+            try c.encode(Kind.openURL, forKey: .type)
+            try c.encode(p, forKey: .payload)
         case .runShell(let p):
             try c.encode(Kind.runShell, forKey: .type)
             try c.encode(p, forKey: .payload)
@@ -88,6 +101,7 @@ enum ButtonAction: Codable, Equatable {
         case .none: return "(액션 없음)"
         case .openApp: return "앱 실행"
         case .openPath: return "파일/폴더 열기"
+        case .openURL: return "링크 열기"
         case .runShell: return "쉘 스크립트"
         case .runAppleScript: return "AppleScript"
         }
