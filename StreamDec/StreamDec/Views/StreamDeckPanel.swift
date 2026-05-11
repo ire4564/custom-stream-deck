@@ -13,7 +13,9 @@ final class StreamDeckPanel: NSPanel {
     override func sendEvent(_ event: NSEvent) {
         if event.type == .leftMouseDown {
             MainActor.assumeIsolated {
-                if Date() >= AppDelegate.suppressAutoActivateUntil {
+                // 이미 우리 앱이 active 상태면 activate 재호출 금지 (반복 호출 → 시트와의 이벤트 충돌 방지).
+                if !NSApp.isActive
+                    && Date() >= AppDelegate.suppressAutoActivateUntil {
                     NSApp.activate(ignoringOtherApps: true)
                 }
             }

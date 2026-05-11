@@ -483,9 +483,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     static var suppressAutoActivateUntil: Date = .distantPast
 
     /// 패널이 클릭되어 key window 가 되면 우리 앱을 활성화 → macOS 상단 메뉴바가 우리 앱 메뉴로 교체됨.
-    /// 단, 액션 실행으로 다른 앱에 양보해야 하는 시점에는 호출하지 않는다.
+    /// 단, 다음 경우에는 호출하지 않는다 (반복/재귀 활성화로 시트 응답 동결 방지):
+    /// - 액션 실행으로 양보 중인 윈도우
+    /// - 이미 앱이 active 인 상태
+    /// - 패널에 시트가 떠 있는 상태 (시트 modal 루프와의 충돌 회피)
     func windowDidBecomeKey(_ notification: Notification) {
         if Date() < Self.suppressAutoActivateUntil { return }
+        if NSApp.isActive { return }
+        if deckPanel?.attachedSheet != nil { return }
         NSApp.activate(ignoringOtherApps: true)
     }
 
