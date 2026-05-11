@@ -156,30 +156,32 @@ struct ProfileManagerSheet: View {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [streamdecType, .json]
         panel.nameFieldStringValue = "\(p.name).streamdec"
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.level = .modalPanel
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             try? vm.exportProfile(p.id, to: url)
         }
     }
 
     private func exportAll() {
-        NSApp.activate(ignoringOtherApps: true)
         let panel = NSSavePanel()
         panel.allowedContentTypes = [streamdecType, .json]
         panel.nameFieldStringValue = "StreamDec-bundle.streamdec"
         panel.level = .modalPanel
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             try? vm.exportAllProfiles(to: url)
         }
     }
 
     private func importProfile() {
-        NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [streamdecType, .json]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.level = .modalPanel
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             // 충돌 검사 (간이): JSON 디코드 → 동일 ID/이름 비교
             if let data = try? Data(contentsOf: url),
                let p = try? JSONDecoder.iso().decode(Profile.self, from: data),

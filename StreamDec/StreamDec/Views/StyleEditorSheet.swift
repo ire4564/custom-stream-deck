@@ -238,13 +238,13 @@ struct StyleEditorSheet: View {
     // MARK: - File pickers
 
     private func pickIconFile() {
-        NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.png, .jpeg, .tiff, .bmp, .image]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.level = .modalPanel
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             do {
                 let rel = try AssetStore.shared.importFile(url)
                 style.iconSource = .file(relativePath: rel)
@@ -255,14 +255,14 @@ struct StyleEditorSheet: View {
     }
 
     private func pickImageOrGIF() {
-        NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
         // GIF + 모든 일반 이미지 포맷을 받는다. .image 는 PNG/JPG/HEIC/TIFF/BMP 등을 포괄.
         panel.allowedContentTypes = [.gif, .png, .jpeg, .heic, .tiff, .bmp, .webP, .image]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.level = .modalPanel
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             do {
                 let rel = try AssetStore.shared.importFile(url)
                 style.gifRelativePath = rel

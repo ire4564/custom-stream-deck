@@ -182,10 +182,8 @@ struct QuickActionAssignSheet: View {
     // MARK: - Pickers
 
     private func pickApp() {
-        // accessory app(LSUIElement) + 떠있는 nonactivating sheet 위에서
-        // NSOpenPanel 이 뒤로 숨겨지지 않도록 강제 활성화 + 레벨 보강.
-        NSApp.activate(ignoringOtherApps: true)
-
+        // SwiftUI .sheet 안에서 NSOpenPanel.runModal() 을 호출하면 nested modal 이 되어
+        // 시트가 deadlock 되므로 비동기 begin(completionHandler:) 으로 띄운다.
         let panel = NSOpenPanel()
         panel.title = "앱 선택"
         panel.prompt = "선택"
@@ -196,20 +194,18 @@ struct QuickActionAssignSheet: View {
         panel.allowsMultipleSelection = false
         panel.treatsFilePackagesAsDirectories = false
         panel.level = .modalPanel
-
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        // bundleIdentifier 를 못 읽어도 URL 만으로 액션을 만들 수 있게 fallback.
-        if let bid = Bundle(url: url)?.bundleIdentifier {
-            bundleIdentifier = bid
-        } else {
-            bundleIdentifier = ""
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            if let bid = Bundle(url: url)?.bundleIdentifier {
+                bundleIdentifier = bid
+            } else {
+                bundleIdentifier = ""
+            }
+            pickedAppURL = url
         }
-        pickedAppURL = url
     }
 
     private func pickPath() {
-        NSApp.activate(ignoringOtherApps: true)
-
         let panel = NSOpenPanel()
         panel.title = "파일 또는 폴더 선택"
         panel.prompt = "선택"
@@ -217,7 +213,8 @@ struct QuickActionAssignSheet: View {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.level = .modalPanel
-        if panel.runModal() == .OK, let url = panel.url {
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
             path = url.path
         }
     }
