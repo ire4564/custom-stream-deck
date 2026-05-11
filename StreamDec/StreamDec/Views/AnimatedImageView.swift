@@ -65,13 +65,24 @@ struct AnimatedImageView: View {
     // MARK: - Load
 
     private func load() {
-        frames = []
-        loaded = false
+        // 1) 메인 스레드에서 즉시 NSImage 한 장만 빠르게 표시 (정적/GIF 모두 첫 프레임이 즉시 나옴)
+        if let quick = NSImage(contentsOf: url) {
+            frames = [GIFFrame(image: quick, startOffset: 0, duration: 0)]
+        } else {
+            frames = []
+        }
+        loaded = true
+
+        // 2) 백그라운드에서 GIF 의 모든 프레임을 추출해 교체 (정적 이미지면 한 프레임 그대로)
+        let snapshot = url
         DispatchQueue.global(qos: .userInitiated).async {
-            let extracted = Self.extractFrames(from: url)
+            let extracted = Self.extractFrames(from: snapshot)
             DispatchQueue.main.async {
-                self.frames = extracted
-                self.loaded = true
+                // 비동기 결과가 도착했을 때 url 이 그 사이 또 바뀌었다면 무시.
+                guard snapshot == self.url else { return }
+                if !extracted.isEmpty {
+                    self.frames = extracted
+                }
             }
         }
     }

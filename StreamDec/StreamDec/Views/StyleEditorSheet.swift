@@ -227,8 +227,10 @@ struct StyleEditorSheet: View {
         case .sfSymbol(let name):
             Image(systemName: name).font(.system(size: 20)).foregroundStyle(.primary)
         case .file(let path):
-            if let img = NSImage(contentsOf: AssetStore.shared.absoluteURL(forRelativePath: path)) {
-                Image(nsImage: img).resizable().scaledToFit()
+            let url = AssetStore.shared.absoluteURL(forRelativePath: path)
+            // .id(path) 로 path 변경 시 view 강제 재생성 → 새 NSImage 로드
+            if let img = NSImage(contentsOf: url) {
+                Image(nsImage: img).resizable().scaledToFit().id(path)
             } else {
                 Image(systemName: "photo")
             }

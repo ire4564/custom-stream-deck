@@ -123,13 +123,12 @@ struct DeckButtonView: View {
     @ViewBuilder
     private var mediaFill: some View {
         if useMediaForeground, let path = button.style.gifRelativePath {
-            AnimatedImageView(
-                url: AssetStore.shared.absoluteURL(forRelativePath: path),
-                contentMode: .fill
-            )
-            .frame(width: cellSide, height: cellSide)
-            .clipped()
-            .allowsHitTesting(false)
+            let url = AssetStore.shared.absoluteURL(forRelativePath: path)
+            AnimatedImageView(url: url, contentMode: .fill)
+                .id(url)  // url 변경 시 view 재생성 → 캐시된 frames 즉시 폐기
+                .frame(width: cellSide, height: cellSide)
+                .clipped()
+                .allowsHitTesting(false)
         }
     }
 
@@ -197,6 +196,7 @@ struct DeckButtonView: View {
                 Image(nsImage: img)
                     .resizable()
                     .scaledToFit()
+                    .id(path)
             } else {
                 Image(systemName: "photo")
             }
