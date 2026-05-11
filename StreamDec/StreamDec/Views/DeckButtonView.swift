@@ -132,10 +132,12 @@ struct DeckButtonView: View {
         }
     }
 
-    /// 이미지가 깔린 경우 라벨 가독성을 위한 아래→위 검정 그라데이션 (아래 진함, 위 투명).
+    /// 이미지 + 라벨이 함께 있을 때만 라벨 가독성을 위한 아래→위 검정 그라데이션 표시.
+    /// 라벨이 없으면 이미지를 가리지 않도록 표시하지 않는다.
     @ViewBuilder
     private var mediaScrim: some View {
-        if useMediaForeground {
+        let showsLabel = button.style.labelVisible && !button.style.label.isEmpty
+        if useMediaForeground && showsLabel {
             LinearGradient(
                 colors: [
                     Color.black.opacity(0.65),
