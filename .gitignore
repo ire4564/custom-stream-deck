@@ -1,0 +1,23 @@
+# Build artifacts
+.build/
+build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+
+# Swift Package Manager
+Package.resolved
+.swiftpm/
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# User-specific app data (runtime — should not be checked in)
+# (Located in ~/Library/Application Support/StreamDec)

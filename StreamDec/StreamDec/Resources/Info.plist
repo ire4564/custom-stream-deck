@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.dohee.streamdec</string>
+    <key>CFBundleName</key>
+    <string>StreamDec</string>
+    <key>CFBundleDisplayName</key>
+    <string>StreamDec</string>
+    <key>CFBundleVersion</key>
+    <string>0.0.1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.0.1</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <false/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>StreamDec는 사용자가 설정한 버튼 액션을 실행하기 위해 다른 앱을 자동화 제어합니다.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>StreamDec는 사용자가 선택한 파일/폴더를 열기 위해 접근 권한이 필요합니다.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>StreamDec는 사용자가 선택한 파일/폴더를 열기 위해 접근 권한이 필요합니다.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>StreamDec는 사용자가 선택한 파일/폴더를 열기 위해 접근 권한이 필요합니다.</string>
+</dict>
+</plist>
