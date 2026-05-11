@@ -114,9 +114,10 @@ struct DeckButtonView: View {
         return AnyShapeStyle(start)
     }
 
-    /// 큰 이미지/GIF 가 등록되어 있고 (우선 표시 ON 또는 아이콘 없음) 이면 버튼 배경 전체에 aspect-fill 로 채움.
+    /// 이미지/GIF 가 등록되어 있으면 무조건 그것을 버튼 배경으로 사용한다.
+    /// (별도 우선순위 토글 없이도 즉시 교체)
     private var useMediaForeground: Bool {
-        button.style.gifRelativePath != nil && (button.style.gifPriority || isIconNone)
+        button.style.gifRelativePath != nil
     }
 
     /// 버튼 배경을 가득 채우는 이미지/GIF (aspect-fill, 모서리 클리핑은 부모 clipShape 가 담당).

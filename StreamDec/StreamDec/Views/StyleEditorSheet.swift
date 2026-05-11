@@ -83,9 +83,7 @@ struct StyleEditorSheet: View {
                                 Button("제거") { style.gifRelativePath = nil }
                             }
                         }
-                        Toggle("아이콘 대신 우선 표시", isOn: $style.gifPriority)
-                            .disabled(style.gifRelativePath == nil)
-                        Text("PNG · JPG · HEIC · GIF 등을 지원합니다. GIF는 자동 애니메이션됩니다.")
+                        Text("이미지를 등록하면 버튼 배경으로 자동 표시됩니다. PNG · JPG · HEIC · GIF 지원, GIF는 자동 애니메이션.")
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
