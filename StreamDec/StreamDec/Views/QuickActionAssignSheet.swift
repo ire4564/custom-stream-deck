@@ -182,8 +182,6 @@ struct QuickActionAssignSheet: View {
     // MARK: - Pickers
 
     private func pickApp() {
-        // SwiftUI .sheet 안에서 NSOpenPanel.runModal() 을 호출하면 nested modal 이 되어
-        // 시트가 deadlock 되므로 비동기 begin(completionHandler:) 으로 띄운다.
         let panel = NSOpenPanel()
         panel.title = "앱 선택"
         panel.prompt = "선택"
@@ -193,8 +191,7 @@ struct QuickActionAssignSheet: View {
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.treatsFilePackagesAsDirectories = false
-        panel.level = .modalPanel
-        panel.begin { response in
+        Self.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             if let bid = Bundle(url: url)?.bundleIdentifier {
                 bundleIdentifier = bid
@@ -212,10 +209,20 @@ struct QuickActionAssignSheet: View {
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.level = .modalPanel
-        panel.begin { response in
+        Self.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             path = url.path
+        }
+    }
+
+    /// 시트가 떠 있을 땐 그 시트 위에 attached sheet 로,
+    /// 아니면 단독 modeless 로 NSOpenPanel/NSSavePanel 을 띄운다.
+    static func presentPanel(_ panel: NSSavePanel, completion: @escaping (NSApplication.ModalResponse) -> Void) {
+        if let parent = NSApp.keyWindow {
+            panel.beginSheetModal(for: parent, completionHandler: completion)
+        } else {
+            panel.level = .modalPanel
+            panel.begin(completionHandler: completion)
         }
     }
 

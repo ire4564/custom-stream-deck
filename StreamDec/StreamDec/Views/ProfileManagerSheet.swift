@@ -156,8 +156,7 @@ struct ProfileManagerSheet: View {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [streamdecType, .json]
         panel.nameFieldStringValue = "\(p.name).streamdec"
-        panel.level = .modalPanel
-        panel.begin { response in
+        QuickActionAssignSheet.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             try? vm.exportProfile(p.id, to: url)
         }
@@ -167,8 +166,7 @@ struct ProfileManagerSheet: View {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [streamdecType, .json]
         panel.nameFieldStringValue = "StreamDec-bundle.streamdec"
-        panel.level = .modalPanel
-        panel.begin { response in
+        QuickActionAssignSheet.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             try? vm.exportAllProfiles(to: url)
         }
@@ -179,10 +177,8 @@ struct ProfileManagerSheet: View {
         panel.allowedContentTypes = [streamdecType, .json]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.level = .modalPanel
-        panel.begin { response in
+        QuickActionAssignSheet.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
-            // 충돌 검사 (간이): JSON 디코드 → 동일 ID/이름 비교
             if let data = try? Data(contentsOf: url),
                let p = try? JSONDecoder.iso().decode(Profile.self, from: data),
                vm.allProfiles.contains(where: { $0.id == p.id || $0.name == p.name }) {

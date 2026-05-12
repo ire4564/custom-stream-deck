@@ -242,8 +242,7 @@ struct StyleEditorSheet: View {
         panel.allowedContentTypes = [.png, .jpeg, .tiff, .bmp, .image]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.level = .modalPanel
-        panel.begin { response in
+        QuickActionAssignSheet.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             do {
                 let rel = try AssetStore.shared.importFile(url)
@@ -256,12 +255,10 @@ struct StyleEditorSheet: View {
 
     private func pickImageOrGIF() {
         let panel = NSOpenPanel()
-        // GIF + 모든 일반 이미지 포맷을 받는다. .image 는 PNG/JPG/HEIC/TIFF/BMP 등을 포괄.
         panel.allowedContentTypes = [.gif, .png, .jpeg, .heic, .tiff, .bmp, .webP, .image]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.level = .modalPanel
-        panel.begin { response in
+        QuickActionAssignSheet.presentPanel(panel) { response in
             guard response == .OK, let url = panel.url else { return }
             do {
                 let rel = try AssetStore.shared.importFile(url)
