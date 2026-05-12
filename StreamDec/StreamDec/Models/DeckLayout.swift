@@ -53,7 +53,7 @@ struct DeckLayout: Codable, Equatable {
 
     static let `default` = DeckLayout(
         preset: .grid3x3,
-        size: .normal,
+        size: .mini,                       // 사용자 작업을 가리지 않도록 가장 작은 크기 기본값
         orientation: .floatingIsland,
         customRows: 3,
         customColumns: 3

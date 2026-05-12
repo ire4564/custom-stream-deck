@@ -43,14 +43,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     func applicationDidFinishLaunching(_ notification: Notification) {
         Self.shared = self
         Self.logger.info("StreamDec launched")
+        // bootstrap 전에 마이그레이션 필요 여부 확인 → 처음이라면 frame 도 mini 로 강제 축소.
+        let willMigrateToMini = !ProfileStore.shared.loadState().didApplyMiniSizeMigration
         let profile = ProfileStore.shared.bootstrapDefaultIfNeeded()
         Self.logger.info("Bootstrapped profile: \(profile.name, privacy: .public) (\(profile.id.uuidString, privacy: .public))")
         setupMenuBar()
         setupMainMenu()              // 상단 macOS 메뉴바
         setupDeckPanel()
-        restoreSavedFrame()
+        if willMigrateToMini {
+            // 일회성: 저장된 큰 frame 도 mini 사이즈로 즉시 줄여서 사용자 화면을 가리지 않음.
+            // bindToViewModel 안의 초기 applyMinSize(forceResize:false) 보다 먼저 강제 적용.
+        } else {
+            restoreSavedFrame()
+        }
         applyWindowSettings()
         bindToViewModel()
+        if willMigrateToMini {
+            applyMinSize(forceResize: true)
+        }
         registerHotkey()
         showDeck()
     }

@@ -58,6 +58,9 @@ final class ProfileStore {
 
     struct State: Codable, Equatable {
         var activeProfileID: UUID?
+        /// 일회성 마이그레이션 플래그: 모든 프로필을 최소 사이즈로 한 번 자동 조정했는지.
+        /// 이후 사용자가 사이즈를 바꾸면 그대로 존중하기 위해 true 로 표시하고 다시 건드리지 않음.
+        var didApplyMiniSizeMigration: Bool = false
     }
 
     func loadState() -> State {
@@ -111,15 +114,29 @@ final class ProfileStore {
 
     /// 프로필이 하나도 없으면 기본 프로필을 만들고, 활성 프로필을 보장한다.
     func bootstrapDefaultIfNeeded() -> Profile {
-        let profiles = listProfiles()
+        var profiles = listProfiles()
         var state = loadState()
 
         if profiles.isEmpty {
             let def = Profile.makeDefault()
             try? save(def)
             state.activeProfileID = def.id
+            state.didApplyMiniSizeMigration = true
             saveState(state)
             return def
+        }
+
+        // 일회성 마이그레이션: 모든 프로필을 mini 로 한 번 자동 조정.
+        if !state.didApplyMiniSizeMigration {
+            for var p in profiles {
+                if p.layout.size != .mini {
+                    p.layout.size = .mini
+                    try? save(p)
+                }
+            }
+            state.didApplyMiniSizeMigration = true
+            saveState(state)
+            profiles = listProfiles()
         }
 
         if let activeID = state.activeProfileID,
