@@ -7,7 +7,7 @@ struct DeckRootView: View {
     @State private var showBulkSheet = false
     @State private var showProfileSheet = false
     @State private var confirmDelete = false
-    private let spacing: CGFloat = 8
+    private let spacing: CGFloat = 4
 
     var body: some View {
         VStack(spacing: 6) {
@@ -61,7 +61,7 @@ struct DeckRootView: View {
 
     /// Stream Deck 풍 흰색 케이스. 반투명(약 50%) 으로 배경이 살짝 비침.
     private var chassisBackground: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
             .fill(
                 LinearGradient(
                     colors: [

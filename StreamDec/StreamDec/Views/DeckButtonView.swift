@@ -25,7 +25,7 @@ struct DeckButtonView: View {
                 }
             }
             .frame(width: cellSide, height: cellSide)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .scaleEffect(isHovering ? 1.04 : (isRunning ? 0.97 : 1.0))
             .opacity(isDragging ? 0.5 : 1.0)
             .overlay(selectionOverlay)
@@ -41,7 +41,7 @@ struct DeckButtonView: View {
     @ViewBuilder
     private var runningPulse: some View {
         if isRunning {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(Color.accentColor.opacity(0.7), lineWidth: 2)
                 .blur(radius: 1)
         }
@@ -50,17 +50,17 @@ struct DeckButtonView: View {
     @ViewBuilder
     private var selectionOverlay: some View {
         if isEditing && isSelected {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(Color.accentColor, lineWidth: 2.5)
         } else if isEditing {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.25), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
         }
     }
 
     @ViewBuilder
     private var background: some View {
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
         shape
             .fill(backgroundStyle)
             // 상단 하이라이트 (글로시 효과)

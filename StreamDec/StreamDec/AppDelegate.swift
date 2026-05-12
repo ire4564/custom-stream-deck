@@ -419,7 +419,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         let cell = layout.size.cellSide
         let cols = CGFloat(layout.columns)
         let rows = CGFloat(layout.rows)
-        let gridSpacing: CGFloat = 8
+        let gridSpacing: CGFloat = 4   // DeckRootView.spacing 과 동일하게 유지
         let outerPadding: CGFloat = 8
 
         let contentWidth = cell * cols + gridSpacing * (cols - 1) + outerPadding * 2
