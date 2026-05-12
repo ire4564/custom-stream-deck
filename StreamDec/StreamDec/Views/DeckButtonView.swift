@@ -80,14 +80,14 @@ struct DeckButtonView: View {
                     .blendMode(.plusLighter)
                     .allowsHitTesting(false)
             )
-            // 하단 안쪽 그림자 (베벨 느낌)
+            // 베벨 stroke (위 highlight ↔ 아래 darker)
             .overlay(
                 shape
                     .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.45),
-                                Color.black.opacity(0.35)
+                                Color.white.opacity(0.55),
+                                Color.black.opacity(0.45)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -95,9 +95,9 @@ struct DeckButtonView: View {
                         lineWidth: 1
                     )
             )
-            // 떠 있는 듯한 외부 그림자
-            .shadow(color: .black.opacity(isHovering ? 0.45 : 0.30), radius: isHovering ? 10 : 6, x: 0, y: isHovering ? 5 : 3)
-            .shadow(color: .black.opacity(0.20), radius: 1, x: 0, y: 1)
+            // 외곽 그림자(아주 미세하게 외곽선 강조용) + 떠있는 느낌의 부드러운 큰 그림자
+            .shadow(color: .black.opacity(0.40), radius: 0.7, x: 0, y: 0.5)
+            .shadow(color: .black.opacity(isHovering ? 0.50 : 0.35), radius: isHovering ? 12 : 7, x: 0, y: isHovering ? 6 : 3)
     }
 
     private var backgroundStyle: AnyShapeStyle {

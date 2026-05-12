@@ -59,14 +59,14 @@ struct DeckRootView: View {
 
     // MARK: - Chassis & Header
 
-    /// Stream Deck 풍 흰색 케이스. shadow / stroke 없이 깔끔하게.
+    /// Stream Deck 풍 흰색 케이스. 반투명(약 50%) 으로 배경이 살짝 비침.
     private var chassisBackground: some View {
         RoundedRectangle(cornerRadius: 22, style: .continuous)
             .fill(
                 LinearGradient(
                     colors: [
-                        Color(red: 0.97, green: 0.97, blue: 0.97),
-                        Color(red: 0.90, green: 0.90, blue: 0.92)
+                        Color.white.opacity(0.55),
+                        Color(red: 0.90, green: 0.90, blue: 0.92).opacity(0.55)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
