@@ -380,19 +380,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         applyMinSize(forceResize: false)
     }
 
-    /// 현재 레이아웃 / DeckSize 기준으로 패널의 최소 크기를 계산해 적용.
-    /// - forceResize == true 면 현재 frame 도 그 minSize 로 setFrame (사용자가 사이즈를 명시적으로 바꾼 시점).
-    /// - false 면 minSize 만 갱신 (앱 부팅 시).
+    /// 현재 레이아웃 / DeckSize 기준으로 패널의 권장 크기와 최소 크기를 적용.
+    /// - 권장 크기(target): 사용자가 사이즈 메뉴를 누르면 적용되는 크기 (cellSide 기반)
+    /// - 최소 크기(minSize): 사용자가 자유롭게 패널을 줄일 수 있도록 권장 크기의 일부만 보장
+    ///   → 사용자가 더 작게 줄이면 GeometryReader 가 셀을 비례 축소해 잘리지 않고 함께 줄어듦.
     private func applyMinSize(forceResize: Bool) {
         guard let panel = deckPanel else { return }
         let layout = DeckViewModel.shared.profile.layout
         let target = panelSize(for: layout)
+        let lowerBound = minimumPanelSize(for: layout)
 
-        // 최소 크기 적용 (외곽 frame 기준)
-        panel.minSize = target
+        // 패널 최소 크기는 lowerBound — 권장 크기보다 훨씬 작음. 사용자가 손으로 자유롭게 줄일 수 있음.
+        panel.minSize = lowerBound
 
         if forceResize {
-            // 사용자가 사이즈 메뉴를 선택한 시점. 패널 좌상단 고정으로 크기만 바꿈.
+            // 사용자가 사이즈 메뉴를 선택한 시점 → 권장 크기로 강제 setFrame.
             var frame = panel.frame
             let topLeft = NSPoint(x: frame.origin.x, y: frame.maxY)
             frame.size = target
@@ -400,17 +402,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             frame.origin.y = topLeft.y - target.height
             panel.setFrame(frame, display: true, animate: true)
         } else {
-            // 부팅 직후 — 현재 frame 이 minSize 보다 작으면 늘려서 minSize 보장.
+            // 부팅 직후 — 현재 frame 이 lowerBound 보다 작은 경우만 lowerBound 까지 끌어올림.
             var frame = panel.frame
-            if frame.width < target.width || frame.height < target.height {
+            if frame.width < lowerBound.width || frame.height < lowerBound.height {
                 let topLeft = NSPoint(x: frame.origin.x, y: frame.maxY)
-                frame.size.width = max(frame.width, target.width)
-                frame.size.height = max(frame.height, target.height)
+                frame.size.width = max(frame.width, lowerBound.width)
+                frame.size.height = max(frame.height, lowerBound.height)
                 frame.origin.x = topLeft.x
                 frame.origin.y = topLeft.y - frame.height
                 panel.setFrame(frame, display: true, animate: false)
             }
         }
+    }
+
+    /// 사용자가 자유롭게 줄일 수 있는 패널의 절대 최소 크기.
+    /// 셀 한 변이 약 16px 까지는 줄어들 수 있도록 한다 (그 이하는 의미 없음).
+    private func minimumPanelSize(for layout: DeckLayout) -> CGSize {
+        let cols = CGFloat(layout.columns)
+        let rows = CGFloat(layout.rows)
+        let minCell: CGFloat = 16
+        let gridSpacing: CGFloat = 4
+        let outerPadding: CGFloat = 8
+
+        let w = minCell * cols + gridSpacing * (cols - 1) + outerPadding * 2
+        let h = minCell * rows + gridSpacing * (rows - 1) + outerPadding * 2
+        return CGSize(width: ceil(w), height: ceil(h))
     }
 
     /// 현재 레이아웃에 맞춘 권장 패널 외곽 크기.

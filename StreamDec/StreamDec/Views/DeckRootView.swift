@@ -130,7 +130,9 @@ struct DeckRootView: View {
         return GeometryReader { geo in
             let availableWidth = geo.size.width
             let totalHSpacing = spacing * CGFloat(max(cols - 1, 0))
-            let side = max(36, (availableWidth - totalHSpacing) / CGFloat(cols))
+            // 사용자가 패널을 크게 줄여도 잘리지 않도록 최소값을 작게 둠 (16px).
+            // 셀이 16 미만으로 줄면 더 이상 의미 있는 표시가 어렵기 때문에 그쯤에서 클램프.
+            let side = max(16, (availableWidth - totalHSpacing) / CGFloat(cols))
             let gridHeight = CGFloat(rows) * side + spacing * CGFloat(max(rows - 1, 0))
 
             VStack(spacing: spacing) {
