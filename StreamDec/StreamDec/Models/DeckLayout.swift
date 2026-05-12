@@ -66,10 +66,10 @@ enum DeckSize: String, Codable, CaseIterable {
     /// 한 칸(셀)의 한 변 픽셀 크기.
     var cellSide: CGFloat {
         switch self {
-        case .mini: return 56
-        case .compact: return 72
-        case .normal: return 88
-        case .large: return 112
+        case .mini: return 24
+        case .compact: return 56
+        case .normal: return 72
+        case .large: return 86
         }
     }
 
