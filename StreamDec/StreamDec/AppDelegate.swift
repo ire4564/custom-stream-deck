@@ -404,23 +404,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     }
 
     /// 현재 레이아웃에 맞춘 권장 패널 외곽 크기.
-    /// DeckRootView 의 padding(8) + header(약 28) + VStack spacing(12) + 그리드 spacing(8) 을 반영.
+    /// DeckRootView 의 padding(8) + 그리드 spacing(8) 만 반영 (헤더 제거됨).
     private func panelSize(for layout: DeckLayout) -> CGSize {
         let cell = layout.size.cellSide
         let cols = CGFloat(layout.columns)
         let rows = CGFloat(layout.rows)
         let gridSpacing: CGFloat = 8
         let outerPadding: CGFloat = 8
-        let headerHeight: CGFloat = 28
-        let vStackSpacing: CGFloat = 12 // header ↔ grid
 
         let contentWidth = cell * cols + gridSpacing * (cols - 1) + outerPadding * 2
-        let contentHeight = cell * rows + gridSpacing * (rows - 1)
-            + outerPadding * 2 + headerHeight + vStackSpacing
+        let contentHeight = cell * rows + gridSpacing * (rows - 1) + outerPadding * 2
 
-        // titled 패널이지만 titleVisibility=hidden + fullSizeContentView 라 외곽 = content 크기에 가깝다.
-        // 약간의 안전 여유.
-        return CGSize(width: ceil(contentWidth), height: ceil(contentHeight) + 4)
+        return CGSize(width: ceil(contentWidth), height: ceil(contentHeight))
     }
 
     /// 윈도우 배경 드래그 가능 여부 갱신.

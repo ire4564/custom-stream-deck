@@ -10,10 +10,9 @@ struct DeckRootView: View {
     private let spacing: CGFloat = 8
 
     var body: some View {
-        VStack(spacing: 12) {
-            header
+        VStack(spacing: 6) {
             if vm.isEditing { editorToolbar }
-            gridView   // 흰 chassis 위에 바로, 반응형
+            gridView
         }
         .padding(8)
         .background(chassisBackground)
@@ -75,31 +74,6 @@ struct DeckRootView: View {
             )
     }
 
-    private var header: some View {
-        HStack(spacing: 8) {
-            // 로고 마크
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(red: 0.40, green: 0.55, blue: 0.95), Color(red: 0.20, green: 0.30, blue: 0.65)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 18, height: 18)
-                    .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
-            }
-            Text("STREAM DEC")
-                .font(.system(size: 14, weight: .bold))
-                .tracking(1.5)
-                .foregroundStyle(Color.black.opacity(0.78))
-            Spacer()
-            Text(vm.profile.name)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.black.opacity(0.55))
-        }
-        .padding(.horizontal, 4)
-    }
 
     // MARK: - Editor toolbar
 
