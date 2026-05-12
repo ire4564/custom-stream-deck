@@ -125,15 +125,19 @@ struct DeckRootView: View {
     private var gridView: some View {
         let cols = vm.profile.layout.columns
         let rows = vm.profile.layout.rows
-        let aspect = CGFloat(cols) / CGFloat(rows)
+        let hSpace = spacing * CGFloat(max(cols - 1, 0))
+        let vSpace = spacing * CGFloat(max(rows - 1, 0))
+        // 그리드 종횡비를 spacing 까지 포함해 정확히 계산 (cellHint 기준).
+        let cellHint = vm.profile.layout.size.cellSide
+        let aspect = (cellHint * CGFloat(cols) + hSpace) / (cellHint * CGFloat(rows) + vSpace)
 
         return GeometryReader { geo in
-            let availableWidth = geo.size.width
-            let totalHSpacing = spacing * CGFloat(max(cols - 1, 0))
-            // 사용자가 패널을 크게 줄여도 잘리지 않도록 최소값을 작게 둠 (16px).
-            // 셀이 16 미만으로 줄면 더 이상 의미 있는 표시가 어렵기 때문에 그쯤에서 클램프.
-            let side = max(16, (availableWidth - totalHSpacing) / CGFloat(cols))
-            let gridHeight = CGFloat(rows) * side + spacing * CGFloat(max(rows - 1, 0))
+            // 가로·세로 중 더 작은 변을 기준으로 셀 한 변 계산 → 어느 방향으로도 잘리지 않음.
+            let sideByW = (geo.size.width - hSpace) / CGFloat(cols)
+            let sideByH = (geo.size.height - vSpace) / CGFloat(rows)
+            let side = max(16, min(sideByW, sideByH))
+            let gridW = side * CGFloat(cols) + hSpace
+            let gridH = side * CGFloat(rows) + vSpace
 
             VStack(spacing: spacing) {
                 ForEach(0..<rows, id: \.self) { r in
@@ -144,9 +148,9 @@ struct DeckRootView: View {
                     }
                 }
             }
-            .frame(width: availableWidth, height: gridHeight, alignment: .top)
+            .frame(width: gridW, height: gridH)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)   // GR 영역 중앙 정렬 → 위/아래 균등 여백
         }
-        // 그리드 종횡비 = cols : rows. SwiftUI 가 폭에 맞춰 높이를 정해줌.
         .aspectRatio(aspect, contentMode: .fit)
     }
 
